@@ -262,3 +262,4 @@ Eduardo Gabriel Visoni Morales\
 Carnet: 0905-22-1146
 
 Colas & RabbitMQ --- Programación III
+Link del video: https://drive.google.com/file/d/1O5DAs8MsJeGxyGB4D8exemcqomCpCeqD/view?usp=sharing
