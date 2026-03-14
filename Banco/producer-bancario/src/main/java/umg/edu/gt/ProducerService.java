@@ -17,27 +17,35 @@ public class ProducerService {
     public int ejecutar() throws Exception {
         LoteTransacciones lote = apiClient.obtenerLote();
 
-        if (lote.getTransacciones() == null || lote.getTransacciones().isEmpty()) {
-            System.out.println("No hay transacciones en el lote: " + lote.getLoteId());
+        if (lote == null || lote.getTransacciones() == null || lote.getTransacciones().isEmpty()) {
+            String loteId = lote != null ? lote.getLoteId() : "SIN_LOTE";
+            System.out.println("No hay transacciones en el lote: " + loteId);
             return 0;
         }
 
         int enviados = 0;
 
-        for (Transaccion t : lote.getTransacciones()) {
-            String banco = t.getBancoDestino();
+        for (Transaccion transaccion : lote.getTransacciones()) {
+            String banco = transaccion.getBancoDestino();
 
             if (banco == null || banco.isBlank()) {
-                System.out.println("⚠️ Transacción sin bancoDestino. id=" + t.getIdTransaccion());
+                System.out.println("Transacción sin bancoDestino. id=" + transaccion.getIdTransaccion());
                 continue;
             }
 
-            String json = objectMapper.writeValueAsString(t);
-            publisher.publicarJsonEnCola(banco, json);
+            String json = objectMapper.writeValueAsString(transaccion);
+            publisher.publicarJsonEnCola(banco.trim(), json);
+
+            System.out.println(
+                    "ID enviado: " + transaccion.getIdTransaccion()
+                            + " | Cola: " + banco.trim()
+                            + " | Monto: Q." + transaccion.getMonto()
+            );
+
             enviados++;
         }
 
-        System.out.println("✅ Lote " + lote.getLoteId() + " | Transacciones enviadas: " + enviados);
+        System.out.println("Lote " + lote.getLoteId() + " | Transacciones enviadas: " + enviados);
         return enviados;
     }
 }

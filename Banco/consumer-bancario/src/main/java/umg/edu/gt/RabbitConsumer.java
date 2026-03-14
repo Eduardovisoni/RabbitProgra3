@@ -1,6 +1,9 @@
 package umg.edu.gt;
 
-import com.rabbitmq.client.*;
+import com.rabbitmq.client.Channel;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.DeliverCallback;
 
 import java.io.IOException;
 import java.util.concurrent.TimeoutException;
@@ -33,13 +36,12 @@ public class RabbitConsumer {
 
             boolean autoAck = false;
 
-            DeliverCallback deliverCallback = (consumerTag, delivery) -> {
-                consumerService.procesarMensaje(queueName, delivery, channel);
-            };
+            DeliverCallback deliverCallback = (consumerTag, delivery) ->
+                    consumerService.procesarMensaje(queueName, delivery, channel);
 
-            channel.basicConsume(queueName, autoAck, deliverCallback, consumerTag -> {
-                System.out.println("Consumer cancelado para la cola: " + queueName);
-            });
+            channel.basicConsume(queueName, autoAck, deliverCallback, consumerTag ->
+                    System.out.println("Consumer cancelado para la cola: " + queueName)
+            );
 
         } catch (IOException | TimeoutException e) {
             System.err.println("Error al consumir la cola " + queueName + ": " + e.getMessage());

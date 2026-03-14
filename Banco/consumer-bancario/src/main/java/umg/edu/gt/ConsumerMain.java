@@ -8,6 +8,9 @@ import java.util.Set;
 
 public class ConsumerMain {
 
+    private static final String COLA_RECHAZADOS = "cola_rechazados";
+    private static final String COLA_ERRORES = "cola_errores";
+
     public static void main(String[] args) {
         String rabbitHost = "localhost";
         String rabbitUsername = "guest";
@@ -31,17 +34,17 @@ public class ConsumerMain {
         TransaccionesApiClient transaccionesApiClient =
                 new TransaccionesApiClient(httpClient, objectMapper, getUrl);
 
-        Set<String> bancos = new LinkedHashSet<>();
+        Set<String> colas = new LinkedHashSet<>();
 
         try {
             LoteTransacciones lote = transaccionesApiClient.obtenerLote();
 
-            if (lote.getTransacciones() != null) {
+            if (lote != null && lote.getTransacciones() != null) {
                 lote.getTransacciones().forEach(transaccion -> {
                     String banco = transaccion.getBancoDestino();
 
                     if (banco != null && !banco.isBlank()) {
-                        bancos.add(banco.trim());
+                        colas.add(banco.trim());
                     }
                 });
             }
@@ -51,19 +54,22 @@ public class ConsumerMain {
             System.err.println("Se usarán colas de respaldo.");
         }
 
-        if (bancos.isEmpty()) {
-            bancos.add("BAC");
-            bancos.add("BANRURAL");
-            bancos.add("BI");
-            bancos.add("GYT");
+        if (colas.isEmpty()) {
+            colas.add("BAC");
+            colas.add("BANRURAL");
+            colas.add("BI");
+            colas.add("GYT");
         }
 
-        for (String cola : bancos) {
+        colas.add(COLA_RECHAZADOS);
+        colas.add(COLA_ERRORES);
+
+        for (String cola : colas) {
             rabbitConsumer.consumirCola(cola, consumerService);
         }
 
         System.out.println("Consumer iniciado correctamente.");
-        System.out.println("Colas detectadas: " + bancos);
+        System.out.println("Colas detectadas: " + colas);
         System.out.println("Escuchando colas dinámicas...");
     }
 }
